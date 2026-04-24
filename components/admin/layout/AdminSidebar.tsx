@@ -95,7 +95,7 @@ export default function AdminSidebar() {
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map(({ href, label, icon: Icon, badge, badgeColor }) => {
+              {group.items.map(({ href, label, icon: Icon, badge, badgeColor = undefined }) => {
                 const active = pathname === href;
                 return (
                   <Link

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Pill, Upload, Send, Search, CheckCircle, Clock, AlertCircle, Camera, FileText } from "lucide-react";
+import { Pill, Upload, Send, Search, CheckCircle, Clock, AlertCircle, Camera, FileText, Bell } from "lucide-react";
 
 export default function PharmacyPatientPage() {
   const [step, setStep] = useState(1);
