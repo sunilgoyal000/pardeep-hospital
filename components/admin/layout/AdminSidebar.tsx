@@ -9,8 +9,23 @@ import {
 } from "lucide-react";
 import { useAdminRole } from "@/context/AdminRoleContext";
 import Logo from "@/components/ui/Logo";
+import type { LucideIcon } from "lucide-react";
 
-const navGroups = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
+  badgeColor?: string;
+  roles?: string[];
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
   {
     label: "Core",
     items: [
@@ -95,7 +110,7 @@ export default function AdminSidebar() {
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map(({ href, label, icon: Icon, badge, badgeColor = undefined }) => {
+              {group.items.map(({ href, label, icon: Icon, badge, badgeColor }) => {
                 const active = pathname === href;
                 return (
                   <Link
