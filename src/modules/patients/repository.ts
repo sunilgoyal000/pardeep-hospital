@@ -4,6 +4,20 @@ import type { ListPatientsQuery } from "./schema";
 
 const include = {
   user: { select: { name: true, email: true, phone: true } },
+  appointments: {
+    where: { status: { in: ["COMPLETED", "CONFIRMED", "BOOKED"] } },
+    orderBy: { slotStart: "desc" },
+    take: 1,
+    include: {
+      doctor: {
+        include: {
+          user: { select: { name: true } },
+          department: { select: { name: true } },
+        },
+      },
+    },
+  },
+  _count: { select: { appointments: true } },
 } satisfies Prisma.PatientInclude;
 
 export type PatientWithRelations = Prisma.PatientGetPayload<{ include: typeof include }>;
@@ -25,5 +39,9 @@ export const patientsRepo = {
       orderBy: { user: { name: "asc" } },
       take: q.limit,
     });
+  },
+
+  findById(id: string) {
+    return prisma.patient.findUnique({ where: { id }, include });
   },
 };

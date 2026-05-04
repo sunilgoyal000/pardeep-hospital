@@ -46,6 +46,7 @@ const providers = [
 
       const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
       if (!user?.passwordHash) return null;
+      if (!user.isActive) return null;
 
       const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
       if (!ok) return null;
@@ -86,6 +87,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role;
       }
       return session;
+    },
+  },
+  events: {
+    async signIn({ user }) {
+      if (!user?.id) return;
+      await prisma.user
+        .update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
+        .catch(() => {
+          // Best-effort. Auth must succeed even if the timestamp write fails.
+        });
     },
   },
 });

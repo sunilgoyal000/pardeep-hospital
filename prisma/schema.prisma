@@ -42,6 +42,8 @@ model User {
   image         String?
   passwordHash  String?
   role          Role      @default(PATIENT)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -89,21 +91,32 @@ model VerificationToken {
 }
 
 model Department {
-  id      String   @id @default(cuid())
-  name    String   @unique
-  code    String   @unique
-  doctors Doctor[]
+  id           String   @id @default(cuid())
+  name         String   @unique
+  code         String   @unique
+  iconEmoji    String?
+  colorHex     String?
+  beds         Int?
+  headDoctorId String?  @unique
+  headDoctor   Doctor?  @relation("DepartmentHead", fields: [headDoctorId], references: [id])
+  doctors      Doctor[]
 }
 
 model Doctor {
-  id           String  @id @default(cuid())
-  userId       String  @unique
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  specialty    String
-  consultFee   Decimal @default(0)
-  isAvailable  Boolean @default(true)
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId    String?
+  department      Department? @relation(fields: [departmentId], references: [id])
+  specialty       String
+  consultFee      Decimal     @default(0)
+  isAvailable     Boolean     @default(true)
+  experienceYears Int?
+  rating          Decimal?
+  imageUrl        String?
+
+  // Reverse for Department.headDoctor (unique on the owning side)
+  headOf       Department? @relation("DepartmentHead")
 
   appointments Appointment[]
 }
