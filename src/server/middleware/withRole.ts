@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/server/auth";
 import { AppError, toErrorResponse } from "@/server/errors";
+import { fromRequest, type RequestContext } from "@/server/requestContext";
 import type { Role } from "@/shared/constants/roles";
 import type { SessionUser } from "@/shared/types/auth";
 
-type AuthedContext<C> = C & { user: SessionUser };
+type AuthedContext<C> = C & { user: SessionUser; request: RequestContext };
 
 type Handler<C> = (
   req: NextRequest,
@@ -37,7 +38,8 @@ export function withRole<C extends object = object>(
         name: session.user.name ?? null,
         role: session.user.role,
       };
-      return await handler(req, { ...(ctx ?? ({} as C)), user });
+      const request = fromRequest(req);
+      return await handler(req, { ...(ctx ?? ({} as C)), user, request });
     } catch (err) {
       return toErrorResponse(err);
     }

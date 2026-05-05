@@ -24,10 +24,10 @@ export const GET = withRole(
 
 export const POST = withRole(
   [ROLES.SUPER_ADMIN, ROLES.ADMIN],
-  async (req, { user }) => {
+  async (req, { user, request }) => {
     try {
       const body = CreateUserSchema.parse(await req.json());
-      const data = await usersService.create(user, body);
+      const data = await usersService.create(user, body, request);
       return NextResponse.json({ data }, { status: 201 });
     } catch (err) {
       return toErrorResponse(err);

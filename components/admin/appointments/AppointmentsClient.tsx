@@ -8,6 +8,7 @@ import {
 import { useToast } from "@/components/admin/ui/ToastProvider";
 import type { AppointmentView } from "@/modules/appointments/schema";
 import BookAppointmentModal from "./BookAppointmentModal";
+import EditAppointmentModal from "./EditAppointmentModal";
 
 type ViewMode = "list" | "calendar";
 type StatusFilter = "All" | "Pending" | "Confirmed" | "Completed" | "Cancelled";
@@ -41,6 +42,7 @@ export default function AppointmentsClient({ initialAppointments }: Props) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<AppointmentView | null>(null);
 
   const today = new Date();
   const [calMonth, setCalMonth] = useState(today.getMonth());
@@ -341,7 +343,7 @@ export default function AppointmentsClient({ initialAppointments }: Props) {
                           <button onClick={() => showToast(`Viewing appointment ${apt.id.slice(-8)}`)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-teal-50">
                             <Eye className="w-3.5 h-3.5 text-teal-600" />
                           </button>
-                          <button onClick={() => showToast(`Editing appointment ${apt.id.slice(-8)}`, "info")} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50">
+                          <button onClick={() => setEditing(apt)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50">
                             <Edit2 className="w-3.5 h-3.5 text-blue-500" />
                           </button>
                           <button onClick={() => cancel(apt.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50">
@@ -368,6 +370,11 @@ export default function AppointmentsClient({ initialAppointments }: Props) {
       <BookAppointmentModal
         open={showModal}
         onClose={() => setShowModal(false)}
+        onSuccess={() => router.refresh()}
+      />
+      <EditAppointmentModal
+        appointment={editing}
+        onClose={() => setEditing(null)}
         onSuccess={() => router.refresh()}
       />
     </div>

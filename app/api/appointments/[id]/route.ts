@@ -22,11 +22,11 @@ export const GET = withRole<Ctx>(
 
 export const PATCH = withRole<Ctx>(
   [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.DOCTOR, ROLES.PATIENT],
-  async (req, { user, params }) => {
+  async (req, { user, params, request }) => {
     try {
       const { id } = await params;
       const body = UpdateAppointmentSchema.parse(await req.json());
-      const data = await appointmentsService.update(user, id, body);
+      const data = await appointmentsService.update(user, id, body, request);
       return NextResponse.json({ data });
     } catch (err) {
       return toErrorResponse(err);
@@ -36,10 +36,10 @@ export const PATCH = withRole<Ctx>(
 
 export const DELETE = withRole<Ctx>(
   [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.PATIENT],
-  async (_req, { user, params }) => {
+  async (_req, { user, params, request }) => {
     try {
       const { id } = await params;
-      const data = await appointmentsService.cancel(user, id);
+      const data = await appointmentsService.cancel(user, id, request);
       return NextResponse.json({ data });
     } catch (err) {
       return toErrorResponse(err);

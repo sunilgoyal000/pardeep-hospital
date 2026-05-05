@@ -10,3 +10,8 @@ export const prisma =
   });
 
 if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// Side-effect: every service path imports this module, so we register
+// in-process event subscribers exactly once via a globalThis sentinel.
+import { registerNotificationSubscribers } from "@/modules/notifications/subscriber";
+registerNotificationSubscribers();

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { withRole } from "@/server/middleware/withRole";
 import { toErrorResponse } from "@/server/errors";
 import { ROLES } from "@/shared/constants/roles";
-import { usersService } from "@/modules/users/service";
-import { UpdateUserSchema } from "@/modules/users/schema";
+import { doctorsService } from "@/modules/doctors/service";
+import { UpdateDoctorSchema } from "@/modules/doctors/schema";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -12,9 +12,9 @@ export const PATCH = withRole<Ctx>(
   async (req, { user, params, request }) => {
     try {
       const { id } = await params;
-      const body = UpdateUserSchema.parse(await req.json());
-      const data = await usersService.update(user, id, body, request);
-      return NextResponse.json({ data });
+      const body = UpdateDoctorSchema.parse(await req.json());
+      await doctorsService.update(user, id, body, request);
+      return NextResponse.json({ ok: true });
     } catch (err) {
       return toErrorResponse(err);
     }

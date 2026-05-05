@@ -1,4 +1,8 @@
 "use client";
+// LEGACY: this React Context drives only the admin shell's role-switcher pill (UI affordance).
+// The authoritative role for authorization is `session.user.role` via NextAuth — never trust
+// this value for permission checks. Slated for removal once AdminSidebar/AdminTopbar are
+// rewired to consume the real session role through a server-passed prop.
 import React, { createContext, useContext, useState } from "react";
 
 export type AdminRole = "Super Admin" | "Doctor" | "Receptionist" | "Pharmacist";

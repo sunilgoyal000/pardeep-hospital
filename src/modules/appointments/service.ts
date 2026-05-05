@@ -3,6 +3,7 @@ import { prisma } from "@/server/db";
 import { AppError } from "@/server/errors";
 import { eventBus } from "@/server/events/bus";
 import { recordAudit } from "@/server/audit";
+import type { RequestContext } from "@/server/requestContext";
 import { ROLES } from "@/shared/constants/roles";
 import type { SessionUser } from "@/shared/types/auth";
 
@@ -67,7 +68,7 @@ export const appointmentsService = {
     return toView(row);
   },
 
-  async create(actor: SessionUser, input: CreateAppointmentInput): Promise<AppointmentView> {
+  async create(actor: SessionUser, input: CreateAppointmentInput, context?: RequestContext): Promise<AppointmentView> {
     if (input.slotStart < new Date()) {
       throw new AppError("VALIDATION", "Cannot book in the past");
     }
@@ -91,6 +92,7 @@ export const appointmentsService = {
       entity: "Appointment",
       entityId: created.id,
       metadata: { doctorId: created.doctorId, patientId: created.patientId, slotStart: created.slotStart },
+      context,
     });
 
     await eventBus.emit(AppointmentEvents.Created, {
@@ -106,7 +108,8 @@ export const appointmentsService = {
   async update(
     actor: SessionUser,
     id: string,
-    input: UpdateAppointmentInput
+    input: UpdateAppointmentInput,
+    context?: RequestContext
   ): Promise<AppointmentView> {
     const existing = await appointmentsRepo.findById(id);
     if (!existing) throw new AppError("NOT_FOUND");
@@ -142,6 +145,7 @@ export const appointmentsService = {
       entity: "Appointment",
       entityId: id,
       metadata: input as Record<string, unknown>,
+      context,
     });
 
     await eventBus.emit(AppointmentEvents.Updated, {
@@ -152,13 +156,14 @@ export const appointmentsService = {
     return toView(updated);
   },
 
-  async cancel(actor: SessionUser, id: string): Promise<AppointmentView> {
-    const view = await this.update(actor, id, { status: "CANCELLED" });
+  async cancel(actor: SessionUser, id: string, context?: RequestContext): Promise<AppointmentView> {
+    const view = await this.update(actor, id, { status: "CANCELLED" }, context);
     await recordAudit({
       actor,
       action: "appointment.cancel",
       entity: "Appointment",
       entityId: id,
+      context,
     });
     await eventBus.emit(AppointmentEvents.Cancelled, {
       appointmentId: id,

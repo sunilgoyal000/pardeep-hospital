@@ -1,9 +1,11 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Plus, Star, Edit2, Eye } from "lucide-react";
 import { useToast } from "@/components/admin/ui/ToastProvider";
 import type { DoctorAdminView } from "@/modules/doctors/schema";
+import EditDoctorModal from "./EditDoctorModal";
 
 type StatusFilter = "All" | "Available" | "Unavailable";
 
@@ -18,10 +20,12 @@ interface Props {
 
 export default function DoctorsClient({ initialDoctors }: Props) {
   const { showToast } = useToast();
+  const router = useRouter();
   const [doctors] = useState(initialDoctors);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<DoctorAdminView | null>(null);
 
   const filtered = useMemo(() => {
     return doctors.filter((d) => {
@@ -130,7 +134,7 @@ export default function DoctorsClient({ initialDoctors }: Props) {
                 <div className="p-5">
                   <div className="flex items-start gap-4">
                     {doc.imageUrl ? (
-                      <Image src={doc.imageUrl} alt={doc.name} width={56} height={56} className="w-14 h-14 rounded-2xl object-cover flex-shrink-0" unoptimized />
+                      <Image src={doc.imageUrl} alt={doc.name} width={56} height={56} className="w-14 h-14 rounded-2xl object-cover flex-shrink-0" />
                     ) : (
                       <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
                         style={{ background: "linear-gradient(135deg,#0d9488,#0891b2)" }}>
@@ -176,7 +180,7 @@ export default function DoctorsClient({ initialDoctors }: Props) {
                       Schedule
                     </button>
                     <button
-                      onClick={() => showToast(`Edit form lands in a follow-up PR`, "info")}
+                      onClick={() => setEditing(doc)}
                       className="flex-1 py-2 rounded-xl text-xs font-semibold text-white"
                       style={{ background: "linear-gradient(135deg,#0d9488,#0891b2)" }}
                     >
@@ -216,7 +220,7 @@ export default function DoctorsClient({ initialDoctors }: Props) {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         {doc.imageUrl ? (
-                          <Image src={doc.imageUrl} alt={doc.name} width={36} height={36} className="w-9 h-9 rounded-xl object-cover" unoptimized />
+                          <Image src={doc.imageUrl} alt={doc.name} width={36} height={36} className="w-9 h-9 rounded-xl object-cover" />
                         ) : (
                           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-xs font-bold"
                             style={{ background: "linear-gradient(135deg,#0d9488,#0891b2)" }}>
@@ -257,7 +261,7 @@ export default function DoctorsClient({ initialDoctors }: Props) {
                         <button onClick={() => showToast(`Viewing ${doc.name}`)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-teal-50 transition-colors">
                           <Eye className="w-3.5 h-3.5 text-teal-600" />
                         </button>
-                        <button onClick={() => showToast(`Edit form lands in a follow-up PR`, "info")} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50 transition-colors">
+                        <button onClick={() => setEditing(doc)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50 transition-colors">
                           <Edit2 className="w-3.5 h-3.5 text-blue-500" />
                         </button>
                       </div>
@@ -276,6 +280,12 @@ export default function DoctorsClient({ initialDoctors }: Props) {
           </table>
         </div>
       )}
+
+      <EditDoctorModal
+        doctor={editing}
+        onClose={() => setEditing(null)}
+        onSuccess={() => router.refresh()}
+      />
 
       {showModal && (
         <>

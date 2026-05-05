@@ -7,6 +7,13 @@ export const ListPatientsQuerySchema = z.object({
 
 export type ListPatientsQuery = z.infer<typeof ListPatientsQuerySchema>;
 
+export const UpdatePatientSchema = z.object({
+  dob: z.coerce.date().nullable().optional(),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]).nullable().optional(),
+  bloodGroup: z.string().max(8).nullable().optional(),
+});
+export type UpdatePatientInput = z.infer<typeof UpdatePatientSchema>;
+
 export interface PatientView {
   id: string;
   name: string;

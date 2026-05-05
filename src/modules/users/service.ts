@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/server/db";
 import { AppError } from "@/server/errors";
 import { recordAudit } from "@/server/audit";
+import type { RequestContext } from "@/server/requestContext";
 import { ROLES } from "@/shared/constants/roles";
 import type { SessionUser } from "@/shared/types/auth";
 
@@ -41,7 +42,7 @@ export const usersService = {
     return rows.map(toView);
   },
 
-  async create(actor: SessionUser, input: CreateUserInput): Promise<UserAdminView> {
+  async create(actor: SessionUser, input: CreateUserInput, context?: RequestContext): Promise<UserAdminView> {
     assertAdmin(actor);
 
     const existing = await usersRepo.findByEmail(input.email);
@@ -88,6 +89,7 @@ export const usersService = {
       entity: "User",
       entityId: created.id,
       metadata: { role: input.role, email: input.email },
+      context,
     });
 
     const fresh = await usersRepo.findById(created.id);
@@ -97,7 +99,8 @@ export const usersService = {
   async update(
     actor: SessionUser,
     id: string,
-    input: UpdateUserInput
+    input: UpdateUserInput,
+    context?: RequestContext
   ): Promise<UserAdminView> {
     assertAdmin(actor);
 
@@ -123,6 +126,7 @@ export const usersService = {
       entity: "User",
       entityId: id,
       metadata: input as Record<string, unknown>,
+      context,
     });
 
     const fresh = await usersRepo.findById(id);

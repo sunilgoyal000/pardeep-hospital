@@ -1,9 +1,12 @@
+import { prisma } from "@/server/db";
 import { AppError } from "@/server/errors";
+import { recordAudit } from "@/server/audit";
+import type { RequestContext } from "@/server/requestContext";
 import { ROLES } from "@/shared/constants/roles";
 import type { SessionUser } from "@/shared/types/auth";
 
 import { patientsRepo, type PatientWithRelations } from "./repository";
-import type { ListPatientsQuery, PatientView } from "./schema";
+import type { ListPatientsQuery, PatientView, UpdatePatientInput } from "./schema";
 
 const ACTIVE_WINDOW_DAYS = 90;
 
@@ -58,5 +61,41 @@ export const patientsService = {
     const row = await patientsRepo.findById(id);
     if (!row) throw new AppError("NOT_FOUND");
     return toView(row);
+  },
+
+  async update(
+    actor: SessionUser,
+    id: string,
+    input: UpdatePatientInput,
+    context?: RequestContext
+  ): Promise<PatientView> {
+    // Patients can edit their own profile; staff can edit any.
+    const existing = await patientsRepo.findById(id);
+    if (!existing) throw new AppError("NOT_FOUND");
+
+    const isStaff = ALLOWED_LIST_ROLES.includes(actor.role as typeof ALLOWED_LIST_ROLES[number]);
+    const isOwner = existing.userId === actor.id;
+    if (!isStaff && !isOwner) throw new AppError("FORBIDDEN");
+
+    await prisma.patient.update({
+      where: { id },
+      data: {
+        dob: input.dob === null ? null : input.dob,
+        gender: input.gender === null ? null : input.gender,
+        bloodGroup: input.bloodGroup === null ? null : input.bloodGroup,
+      },
+    });
+
+    await recordAudit({
+      actor,
+      action: "patient.update",
+      entity: "Patient",
+      entityId: id,
+      metadata: input as Record<string, unknown>,
+      context,
+    });
+
+    const fresh = await patientsRepo.findById(id);
+    return toView(fresh!);
   },
 };

@@ -1,10 +1,12 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search, Plus, Download, Edit2, Trash2, Eye, ChevronUp, ChevronDown,
 } from "lucide-react";
 import { useToast } from "@/components/admin/ui/ToastProvider";
 import type { PatientView } from "@/modules/patients/schema";
+import EditPatientModal from "./EditPatientModal";
 
 type SortKey = "name" | "age" | "lastVisit" | "appointments";
 type SortDir = "asc" | "desc";
@@ -21,7 +23,9 @@ interface Props {
 
 export default function PatientsClient({ initialPatients }: Props) {
   const { showToast } = useToast();
+  const router = useRouter();
   const [patients] = useState<PatientView[]>(initialPatients);
+  const [editing, setEditing] = useState<PatientView | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [selected, setSelected] = useState<string[]>([]);
@@ -315,9 +319,9 @@ export default function PatientsClient({ initialPatients }: Props) {
                           <Eye className="w-3.5 h-3.5" style={{ color: "#0d9488" }} />
                         </button>
                         <button
-                          onClick={() => showToast(`Edit form lands in a follow-up PR`, "info")}
+                          onClick={() => setEditing(p)}
                           className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-blue-50 transition-colors"
-                          title="Edit"
+                          title="Edit profile"
                         >
                           <Edit2 className="w-3.5 h-3.5" style={{ color: "#0891b2" }} />
                         </button>
@@ -351,6 +355,12 @@ export default function PatientsClient({ initialPatients }: Props) {
           <span>Showing {filtered.length} of {patients.length} patients</span>
         </div>
       </div>
+
+      <EditPatientModal
+        patient={editing}
+        onClose={() => setEditing(null)}
+        onSuccess={() => router.refresh()}
+      />
 
       {showAddModal && (
         <>
